@@ -1,19 +1,22 @@
-import pprint
 import requests
 
 
 def main():
+    popular_languages = ['Python', 'Java', 'JavaScript', 'Ruby', 'PHP', 'C++', 'C#', 'C', 'Go']
     url = 'https://api.hh.ru/vacancies'
     headers = {
         'User-Agent': 'MyApp/0.1b'
     }
     params = {
-        'text': 'Программист',
         'area': 1,
         'period': 30
     }
-    response = requests.get(url=url, headers=headers, params=params)
-    pprint.pprint(response.json(), sort_dicts=False)
+    vacancy_counters = dict()
+    for lang in popular_languages:
+        params.update({'text': f'Программист {lang}'})
+        response = requests.get(url=url, headers=headers, params=params)
+        vacancy_counters[lang] = response.json()['found']
+    print(vacancy_counters)
 
 
 if __name__ == '__main__':
