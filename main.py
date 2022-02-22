@@ -8,7 +8,9 @@ def main():
         'User-Agent': 'MyApp/0.1b'
     }
     params = {
-        'text': 'Программист'
+        'text': 'Программист',
+        'area': 1,
+        'period': 30
     }
     response = requests.get(url=url, headers=headers, params=params)
     pprint.pprint(response.json(), sort_dicts=False)
