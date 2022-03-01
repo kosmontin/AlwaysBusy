@@ -1,14 +1,51 @@
 import requests
+from pprint import pprint
+from tqdm import tqdm
 
 
-def predict_rub_salary(id):
-    url = f'https://api.hh.ru/vacancies/{id}'
+def get_vacancy_summaries(lang):
+    url = 'https://api.hh.ru/vacancies'
     headers = {
         'User-Agent': 'MyApp/0.1b'
     }
-    response = requests.get(url=url, headers=headers)
+    params = {
+        'text': f'Программист {lang}',
+        'area': 1,
+        'period': 30
+    }
+    response = requests.get(url=url, headers=headers, params=params)
     response.raise_for_status()
-    salary = response.json()['salary']
+    vacancies_page = response.json()
+    was_found = vacancies_page['found']
+    num_pages = vacancies_page['pages']
+    has_salary = 0
+    sum_salaries = 0
+    vacancies = []
+    for page in tqdm(range(num_pages)):
+        for vacancy in vacancies_page['items']:
+            avg_salary = predict_rub_salary(vacancy['salary'])
+            vacancies.append({
+                'id': vacancy['id'],
+                'average_salary': avg_salary
+            })
+            if avg_salary:
+                has_salary += 1
+                sum_salaries += avg_salary
+        params.update({'page': page})
+        response = requests.get(url=url, headers=headers, params=params)
+        response.raise_for_status()
+        vacancies_page = response.json()
+    summary = {
+        lang: {
+            'vacancies_found': was_found,
+            'vacancies_processed': has_salary,
+            'average_salary': int(sum_salaries / has_salary)
+        }
+    }
+    return summary
+
+
+def predict_rub_salary(salary):
     if salary and salary['currency'] == 'RUR' and (salary['from'] or salary['to']):
         if salary['from'] and salary['to']:
             return (int(salary['from']) + int(salary['to'])) / 2
@@ -19,20 +56,12 @@ def predict_rub_salary(id):
 
 
 def main():
-    url = 'https://api.hh.ru/vacancies'
-    headers = {
-        'User-Agent': 'MyApp/0.1b'
-    }
-    json = {
-        'text': 'Программист Python',
-        'area': 1,
-        'period': 30
-    }
-    response = requests.get(url=url, headers=headers, json=json)
-    response.raise_for_status()
-    vacancies = response.json()['items']
-    for vacancy in vacancies:
-        print(predict_rub_salary(vacancy['id']))
+    popular_languages = ['Python', 'Java', 'JavaScript', 'Ruby', 'PHP', 'C++', 'C#', 'C', 'Go']
+    langs_summary = dict()
+    for lang in popular_languages:
+        print(lang)
+        langs_summary.update(get_vacancy_summaries(lang))
+    pprint(langs_summary, sort_dicts=False)
 
 
 if __name__ == '__main__':
