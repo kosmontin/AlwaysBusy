@@ -17,11 +17,11 @@ def get_vacancy_summaries(lang):
     response.raise_for_status()
     vacancies_page = response.json()
     was_found = vacancies_page['found']
-    num_pages = vacancies_page['pages']
+    pages_number = vacancies_page['pages']
     has_salary = 0
     sum_salaries = 0
     vacancies = []
-    for page in tqdm(range(num_pages)):
+    for page in tqdm(range(pages_number)):
         for vacancy in vacancies_page['items']:
             avg_salary = predict_rub_salary(vacancy['salary'])
             vacancies.append({
@@ -55,13 +55,17 @@ def predict_rub_salary(salary):
             return int(salary['to']) * 0.8
 
 
-def main():
+def get_hh_vacancies():
     popular_languages = ['Python', 'Java', 'JavaScript', 'Ruby', 'PHP', 'C++', 'C#', 'C', 'Go']
     langs_summary = dict()
     for lang in popular_languages:
         print(lang)
         langs_summary.update(get_vacancy_summaries(lang))
-    pprint(langs_summary, sort_dicts=False)
+    return langs_summary
+
+
+def main():
+    pass
 
 
 if __name__ == '__main__':
