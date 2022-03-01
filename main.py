@@ -1,4 +1,7 @@
+import os
+
 import requests
+from dotenv import load_dotenv
 from pprint import pprint
 from tqdm import tqdm
 
@@ -65,8 +68,16 @@ def get_hh_vacancies():
 
 
 def main():
-    pass
+    url = 'https://api.superjob.ru/2.0/vacancies/'
+    headers = {
+        'X-Api-App-Id': os.getenv('SJ_API_KEY')
+    }
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    for profession in response.json()['objects']:
+        print(profession['profession'])
 
 
 if __name__ == '__main__':
+    load_dotenv()
     main()
