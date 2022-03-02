@@ -72,10 +72,15 @@ def main():
     headers = {
         'X-Api-App-Id': os.getenv('SJ_API_KEY')
     }
-    response = requests.get(url, headers=headers)
+    params = {
+        'town': 'Москва',
+        'keyword': 'программист',
+        'catalogues': 48
+    }
+    response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
     for profession in response.json()['objects']:
-        print(profession['profession'])
+        print(f"ID: {profession['id']}, {profession['profession']}, {profession['town']['title']}")
 
 
 if __name__ == '__main__':
