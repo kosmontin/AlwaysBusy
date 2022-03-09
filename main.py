@@ -100,7 +100,7 @@ def get_summary_by_langs(vacancies_source, langs=POPULAR_LANGUAGES):
         summary[lang] = {
             'vacancies_found': vacancies['found'],
             'vacancies_processed': len(salaries),
-            'average_salary': int(sum(salaries) / len(salaries))
+            'average_salary': int(sum(salaries) / len(salaries)) if salaries else 0
         }
     return summary
 
