@@ -62,7 +62,10 @@ def get_sj_vacancies(lang='Python'):
         for vacancy in vacancies_page['objects']:
             vacancies['items'].append({
                 'id': vacancy['id'],
-                'salary': predict_rub_salary(vacancy['payment_from'], vacancy['payment_to'], vacancy['currency'])
+                'salary': predict_rub_salary(
+                    vacancy['payment_from'],
+                    vacancy['payment_to'],
+                    vacancy['currency'])
             })
         page += 1
         more = vacancies_page['more']
@@ -77,15 +80,16 @@ def get_sj_vacancies(lang='Python'):
 def predict_rub_salary(salary_from, salary_to, currency):
     if currency in ('RUR', 'rub') and (salary_from or salary_to):
         if salary_from and salary_to:
-            return (int(salary_from) + int(salary_to)) / 2
+            avg_salary = (int(salary_from) + int(salary_to)) / 2
         elif salary_from:
-            return int(salary_from) * 1.2
+            avg_salary = int(salary_from) * 1.2
         else:
-            return int(salary_to) * 0.8
+            avg_salary = int(salary_to) * 0.8
+        return avg_salary
 
 
 def get_summary_by_langs(vacancies_source, langs=POPULAR_LANGUAGES):
-    summary = dict()
+    summary = {}
     for lang in tqdm(langs, desc='Processing of popular languages: '):
         vacancies = vacancies_source(lang)
         salaries = []
@@ -101,9 +105,15 @@ def get_summary_by_langs(vacancies_source, langs=POPULAR_LANGUAGES):
 
 
 def print_pretty_table(data, source_name=None):
-    table_data = [['Язык программирования', 'Вакансий найдено', 'Вакансий обработано', 'Средняя зарплата']]
+    table_data = [['Язык программирования',
+                   'Вакансий найдено',
+                   'Вакансий обработано',
+                   'Средняя зарплата']]
     for lang, values in data.items():
-        table_data.append([lang, values['vacancies_found'], values['vacancies_processed'], values['average_salary']])
+        table_data.append([lang,
+                           values['vacancies_found'],
+                           values['vacancies_processed'],
+                           values['average_salary']])
     table = AsciiTable(table_data, source_name)
     print('\n', table.table)
 
