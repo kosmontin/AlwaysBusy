@@ -24,7 +24,7 @@ def get_hh_vacancies(lang='Python', area=1, period=30):
     pages = vacancies_page['pages']
     found = vacancies_page['found']
     vacancies = {'items': []}
-    for page in range(pages):
+    for page in range(1, pages):
         for vacancy in vacancies_page['items']:
             vacancies['items'].append({
                 'id': vacancy['id'],
