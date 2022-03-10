@@ -1,3 +1,4 @@
+import itertools
 import os
 
 import requests
@@ -18,13 +19,11 @@ def get_hh_vacancies(lang='Python', area=1, period=30):
         'area': area,
         'period': period
     }
-    response = requests.get(url=url, headers=headers, params=params)
-    response.raise_for_status()
-    vacancies_page = response.json()
-    pages = vacancies_page['pages']
-    found = vacancies_page['found']
     vacancies = {'items': []}
-    for page in range(1, pages):
+    for page in itertools.count(1):
+        response = requests.get(url=url, headers=headers, params=params)
+        response.raise_for_status()
+        vacancies_page = response.json()
         for vacancy in vacancies_page['items']:
             vacancies['items'].append({
                 'id': vacancy['id'],
@@ -33,11 +32,11 @@ def get_hh_vacancies(lang='Python', area=1, period=30):
                     vacancy['salary']['to'],
                     vacancy['salary']['currency']) if vacancy['salary'] else None
             })
-        params.update({'page': page})
-        response = requests.get(url=url, headers=headers, params=params)
-        response.raise_for_status()
-        vacancies_page = response.json()
-    vacancies['found'] = found
+        if vacancies_page['pages'] == page:
+            vacancies['found'] = vacancies_page['found']
+            break
+        else:
+            params['page'] = page
     return vacancies
 
 
@@ -51,14 +50,11 @@ def get_sj_vacancies(lang='Python'):
         'keyword': f'Программист {lang}',
         'catalogues': 48
     }
-    response = requests.get(url, headers=headers, params=params)
-    response.raise_for_status()
-    vacancies_page = response.json()
     vacancies = {'items': []}
-    found = vacancies_page['total']
-    page = 0
-    more = True
-    while more:
+    for page in itertools.count(1):
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        vacancies_page = response.json()
         for vacancy in vacancies_page['objects']:
             vacancies['items'].append({
                 'id': vacancy['id'],
@@ -67,13 +63,11 @@ def get_sj_vacancies(lang='Python'):
                     vacancy['payment_to'],
                     vacancy['currency'])
             })
-        page += 1
-        more = vacancies_page['more']
-        params.update({'page': page})
-        response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()
-        vacancies_page = response.json()
-    vacancies['found'] = found
+        if vacancies_page['more']:
+            params['page'] = page
+        else:
+            vacancies['found'] = vacancies_page['total']
+            break
     return vacancies
 
 
